@@ -54,12 +54,18 @@
     
 int main()
 {
-	
-    vector<int> arr = {9,2,5,3,7,6,4,0,8,1};
-    arr = Sort<int>(arr);
+	//int test
+	vector<int> arr = {9,2,5,3,7,6,4,0,8,1};
+	arr = Sort<int>(arr);
 
-    for(int i: arr)
-        printf("%d,", i);
-	
+	for(int i: arr)
+	printf("%d,", i);
+
+	//float test
+	vector<float> arr = {9.1,8.2,2.5,9.3,8.7,1.6,2.4,1.0,7.8,1};
+	arr = Sort<float>(arr);
+
+	for(float i: arr)
+	    printf("%.1f,", i);
     return 0;
 }
