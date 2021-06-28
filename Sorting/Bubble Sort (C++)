@@ -1,0 +1,51 @@
+/******************************************************************************
+
+                              Online C++ Compiler.
+               Code, Compile, Run and Debug C++ program online.
+Write your code in this editor and press "Run" button to compile and execute it.
+
+*******************************************************************************/
+
+#include <iostream>
+using namespace std;
+
+template <typename T>
+void Bubble_sort(T* arr, int len)
+{
+    for(int i = len-1; i >= 0; i--)
+    {
+        for(int j = 0; j < i; j++)
+        {
+            //swap
+            if(arr[i] < arr[j])
+            {
+                T val =  arr[i];
+                arr[i] = arr[j];
+                arr[j] = val;
+            }
+        }
+    }
+}
+
+int main()
+{
+    
+    //int sort testing    
+    int arr_i[10] = {5,2,8,3,7,6,0,9,1,4};
+
+    Bubble_sort<int>(arr_i, 10);
+    for(int i = 0; i < 10; i++)
+        printf("%d\n", arr_i[i]);
+
+    
+    printf("----------------------------------------------\n");
+    
+    //float sort testing 
+    float arr_f[10] = {5.2,2.6,7.8,2.3,8.7,6.6,0.5,8.9,2.1,4.0};
+    
+    Bubble_sort<float>(arr_f, 10);
+    for(int i = 0; i < 10; i++)
+        printf("%.1f\n", arr_f[i]);
+        
+    return 0;
+}
