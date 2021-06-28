@@ -1,0 +1,65 @@
+    template <typename T2>
+    vector<T2> Merge(vector<T2>& left, vector<T2>& right)
+    {
+        vector<T2> temp;
+        int left_index = 0;
+        int right_index = 0;
+        
+        while((left_index < left.size()) && (right_index < right.size()))
+        {
+            if(left[left_index] <= right[right_index])
+            {
+                temp.push_back(left[left_index]);
+                left_index++;
+            }
+            else
+            {
+                temp.push_back(right[right_index]);
+                right_index++;
+            }
+        }
+        
+        if(left_index<left.size())
+            for(int i = left_index; i < left.size(); i++)
+                temp.push_back(left[i]);
+
+        if(right_index<right.size())
+            for(int i = right_index; i < right.size(); i++)
+                temp.push_back(right[i]);
+
+        return temp;
+    }
+    
+    template <typename T1>
+    vector<T1> Sort(vector<T1>& arr)
+    {
+        if(arr.size()<=1)
+            return arr;
+
+        int mid = arr.size()/2;
+        vector<T1> left;
+        vector<T1> right;
+
+        for(int i = 0; i < mid; i++)
+            left.push_back(arr[i]);
+
+        for(int i = mid; i < arr.size(); i++)
+            right.push_back(arr[i]);
+
+        left = Sort<T1>(left);
+        right = Sort<T1>(right);
+
+        return Merge<T1>(left,right);
+    }
+    
+int main()
+{
+	
+    vector<int> arr = {9,2,5,3,7,6,4,0,8,1};
+    arr = Sort<int>(arr);
+
+    for(int i: arr)
+        printf("%d,", i);
+	
+    return 0;
+}
