@@ -1,0 +1,32 @@
+    void Quick_Sort(vector<int>& arr)
+    {
+        vector<int> left;
+        vector<int> right;
+        
+        if(arr.size()<=1)
+            return;
+        
+        int level = arr.back();
+        arr.pop_back();
+
+        for(int i: arr)
+        {
+            //left
+            if(level>i)
+                left.push_back(i);
+            //right
+            else if(level<i)
+                right.push_back(i);
+        }
+        
+        Quick_Sort(left);
+        left.push_back(level);
+        Quick_Sort(right);
+        
+        arr.clear();
+        
+        for(int i:left)
+            arr.push_back(i);
+        for(int i:right)
+            arr.push_back(i);
+    }
