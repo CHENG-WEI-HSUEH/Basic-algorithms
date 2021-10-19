@@ -21,6 +21,7 @@ class Private_class
     public:
     //construction
     Private_class();
+    void Proof();
 };
 
 Private_class::Private_class()
@@ -33,6 +34,12 @@ int Private_class::private_function()
     printf("private variable: %d\n", private_variable);
     return private_variable;
 }
+
+void Private_class::Proof()
+{
+    printf("proof: %d\n", private_variable);
+}
+
 //-------------------------------------------------------------------//
 
 //Outter class accessing private class
@@ -79,11 +86,17 @@ int main() {
   //Create a private class 
   Private_class private_obj;
   
+  //Before
+  private_obj.Proof();
+  
   //write the private variable = 0
   private_obj.*Get_Variable(Fake_Private_class()) = 0;
   
   //Execute the private function
   (private_obj.*Get_Function(Fake_Private_class()))();
+
+  //After
+  private_obj.Proof();
 
   return 0;
 }
