@@ -1,0 +1,90 @@
+#include <iostream>
+/* run this program using the console pauser or add your own getch, system("pause") or input loop */
+/******************************************************************************
+
+                              Online C++ Compiler.
+               Code, Compile, Run and Debug C++ program online.
+Write your code in this editor and press "Run" button to compile and execute it.
+
+*******************************************************************************/
+
+#include <iostream>
+using namespace std;
+
+//Private class
+//-------------------------------------------------------------------//
+class Private_class
+{
+    private:
+        int private_variable;
+        int private_function();
+    public:
+    //construction
+    Private_class();
+};
+
+Private_class::Private_class()
+{
+    private_variable = 9999;
+}
+
+int Private_class::private_function()
+{
+    printf("private variable: %d\n", private_variable);
+    return private_variable;
+}
+//-------------------------------------------------------------------//
+
+//Outter class accessing private class
+//-------------------------------------------------------------------//
+//template
+template <typename Class_Tag, typename Class_Tag::variable_type Member_1, typename Class_Tag::function_type Member_2>
+
+//friend class to acquire private class
+class Coordinator
+{
+    //access variable(Class) return member
+    friend typename Class_Tag::variable_type Get_Variable(Class_Tag)
+    {
+        return Member_1;
+    }
+    
+    //access function(Class) return member
+    friend typename Class_Tag::function_type Get_Function(Class_Tag)
+    {
+        return Member_2;
+    }
+};
+//-------------------------------------------------------------------//
+
+//Instantiation
+class Fake_Private_class
+{
+    public:
+    //typedef member type
+    typedef int Private_class::*variable_type;
+    typedef int (Private_class::*function_type)();
+    
+    //input - class ; output - member
+    friend variable_type Get_Variable(Fake_Private_class);
+    friend function_type Get_Function(Fake_Private_class);
+};
+
+template class Coordinator<Fake_Private_class, &Private_class::private_variable, &Private_class::private_function>;
+//-------------------------------------------------------------------//
+
+int main() {
+
+  //Proof
+  //Create a private class 
+  Private_class private_obj;
+  
+  //write the private variable = 0
+  private_obj.*Get_Variable(Fake_Private_class()) = 0;
+  
+  //Execute the private function
+  (private_obj.*Get_Function(Fake_Private_class()))();
+
+  return 0;
+}
+
