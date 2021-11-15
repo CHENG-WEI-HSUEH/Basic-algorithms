@@ -1,0 +1,181 @@
+/******************************************************************************
+
+                              Online C++ Compiler.
+               Code, Compile, Run and Debug C++ program online.
+Write your code in this editor and press "Run" button to compile and execute it.
+
+*******************************************************************************/
+
+#include <iostream>
+#include <stdio.h>
+#include <string.h>
+using namespace std;
+
+//------------------------------Fundamental Function------------------------------//
+#define S(x,n)  ((x >> n) | (x << ((sizeof(x) << 3) - n)))
+#define R(x,n)  (x>>n)
+
+#define SIGMA_0(x)  (S(x,2) ^ S(x,13) ^ S(x,22))
+#define SIGMA_1(x)  (S(x,6) ^ S(x,11) ^ S(x,25))
+
+#define THETA_0(x)  (S(x,7) ^ S(x,18) ^ R(x,3))
+#define THETA_1(x)  (S(x,17) ^ S(x,19) ^ R(x,10))
+
+#define Ma(x,y,z)   ((x & y) ^ (x & z) ^ (y & z))
+#define Ch(x,y,z)   ((x & y) ^ (~x & z))
+
+#define GENERATE_K(x)    (512 + 448 - (x % 512 + 1))%512
+#define GET_K(x)    (GENERATE_K(x)==0) ? 512 : GENERATE_K(x)
+
+//------------------------------------Variables------------------------------------//
+//Initial Hash Value
+const unsigned int H_0[8] = {0x6A09E667,
+                             0xBB67AE85,
+                             0x3C6EF372,
+                             0xA54FF53A,
+                             0x510E527F,
+                             0x9B05688C,
+                             0x1F83D9AB,
+                             0x5BE0CD19};
+                             
+const unsigned int K[64] = {
+0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2};
+
+unsigned char   *Msg_Blocks;
+unsigned long Msg_Length;
+
+unsigned int H[8] = {0};
+unsigned int W[16] = {0};
+//-----------------------------------Preprocess-----------------------------------//
+//Input_Interface
+void Pre_Process(unsigned char* Msg, unsigned long Length)
+{
+
+    //Be careful the lenth of between bits and bytes
+    
+    //Get Length By bytes
+    unsigned long K_Length = (GET_K(Length*8)/8)+1;
+
+    //Allocate room
+    Msg_Blocks = (unsigned char*) malloc(K_Length+Length+8);
+
+
+
+    //Copy Msg
+    memcpy(Msg_Blocks, Msg, Length);
+    
+    //K Data
+    for(int x = Length; x < K_Length + Length; x++)
+    {
+        if(x != Length) *(Msg_Blocks+x) = 0x00;
+        else    *(Msg_Blocks+x) = 0x80;
+    }    
+    
+    //Note Length
+    unsigned long Temp_Length = Length * 8;
+    memcpy(Msg_Blocks + K_Length + Length + 7, &Temp_Length, 8);    
+    
+    
+    
+    //Get total Length
+    Msg_Length = Length + K_Length + 8;
+}
+
+//SHA-256 Core_Function
+void SHA_Transform()
+{
+    unsigned int a, b, c, d, e, f, g, h;
+    unsigned long T1, T2;
+
+    //Initial Hash value
+    a = H[0];
+    b = H[1];
+    c = H[2];
+    d = H[3];
+    e = H[4];
+    f = H[5];
+    g = H[6];
+    h = H[7];  
+      
+        
+    for(int j = 0; j < 64; j++)
+    {
+        T1 = h + SIGMA_1(e) + Ch(e,f,g)  + K[j] + W[j];
+        T2 = (SIGMA_0(a) + Ma(a,b,c));
+            
+        h = g;
+        g = f;
+        f = e;
+        e = (d + T1);
+        d = c;
+        c = b;
+        b = a;
+        a = (T1 + T2);
+
+    }
+        
+    //Get result
+    H[0] = (a + H[0]);
+    H[1] = (b + H[1]);
+    H[2] = (c + H[2]);
+    H[3] = (d + H[3]);
+    H[4] = (e + H[4]);
+    H[5] = (f + H[5]);
+    H[6] = (g + H[6]);
+    H[7] = (h + H[7]);
+
+}
+
+void Copy_Msg(unsigned char* Src, unsigned int *Des)
+{
+    for(int i = 0; i < 16; i++)
+    {
+        *(Des+i) = *(Src+i*4)<<24 | *(Src+i*4+1)<<16 | *(Src+i*4+2)<<8 | *(Src+i*4+3);
+    }
+}
+
+void SHA_256(unsigned char* Msg, unsigned long Length)
+{
+    Pre_Process(Msg, Length);
+
+
+       
+    H[0] =  H_0[0];
+    H[1] =  H_0[1];
+    H[2] =  H_0[2];
+    H[3] =  H_0[3];
+    H[4] =  H_0[4];
+    H[5] =  H_0[5];
+    H[6] =  H_0[6];
+    H[7] =  H_0[7];
+
+    //Calculate Hash value: mapping 64times
+    Copy_Msg(Msg_Blocks, W);
+    for(int j = 16; j < 64; j++)
+    {
+        W[j] = ((THETA_1(W[j-2]) + W[j-7]) +\
+               (THETA_0(W[j-15]) + W[j-16]));
+    }    
+    
+    SHA_Transform();
+    
+    for(int j = 0; j < 8; j++)
+        printf("%.2d, %.8x\n", j, H[j]); 
+   
+}
+
+
+int main()
+{
+    unsigned char c[5] = {'c','b','a',' ','d'};
+    SHA_256(&c[0], 5);
+        
+    return 0;
+}
