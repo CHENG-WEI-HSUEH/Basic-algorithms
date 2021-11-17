@@ -1,0 +1,107 @@
+/******************************************************************************
+
+                              Online C++ Compiler.
+               Code, Compile, Run and Debug C++ program online.
+Write your code in this editor and press "Run" button to compile and execute it.
+
+*******************************************************************************/
+
+#include <iostream>
+
+using namespace std;
+
+struct task_ctx
+{
+    unsigned long eax;
+    unsigned long ebx;
+    unsigned long ecx;
+    unsigned long edx;
+    unsigned long edi;
+    unsigned long esi;
+    unsigned long esp;
+    unsigned long ebp;
+    unsigned long eip;
+};
+
+static void Switch(struct task_ctx *src,struct task_ctx *obj)
+{
+    asm volatile(
+    "movq %%rax,0(%%rdi)\n\t"   //save eax  --- 将cpu的值保存到src
+    "movq %%rbx,8(%%rdi)\n\t"   //save ebx
+    "movq %%rcx,16(%%rdi)\n\t"  //save ecx
+    "movq %%rdx,24(%%rdi)\n\t"  //save edx
+    "movq %%rdi,32(%%rdi)\n\t"  //save edi
+    "movq %%rsi,40(%%rdi)\n\t"  //save esi
+    "movq %%rbp,%%rbx\n\t"
+    "add $16,%%rbx\n\t"         //rbx = esp
+    "movq %%rbx,48(%%rdi)\n\t"  //save esp
+    "movq 0(%%rbp),%%rbx\n\t"
+    "movq %%rbx,56(%%rdi)\n\t"  //save ebp
+    "movq 8(%%rbp),%%rbx\n\t"
+    "movq %%rbx,64(%%rdi)\n\t"  //save eip
+    "movq 0(%%rsi),%%rax\n\t"   //restore eax --- 将obj的值恢复到cpu
+    "movq 16(%%rsi),%%rcx\n\t"  //restore ecx
+    "movq 24(%%rsi),%%rdx\n\t"  //restore edx
+    "movq 48(%%rsi),%%rsp\n\t"  //restore esp
+    "movq 56(%%rsi),%%rbp\n\t"  //restore ebp --- 此时堆栈已经切换，如果没有分配内存会崩溃
+    "movq 64(%%rsi),%%rbx\n\t"  //rbx = eip
+    "pushq %%rbx\n\t"           //push eip
+    "movq 8(%%rsi),%%rbx\n\t"   //restore ebx
+    "movq 32(%%rsi),%%rdi\n\t"  //restore edi
+    "movq 40(%%rsi),%%rsi\n\t"  //restore rsi
+    "ret\n\t"                   //pop eip     --- 程序将运行再obj->eip
+    :
+    :);
+}
+
+struct task_ctx src;
+struct task_ctx obj;
+unsigned long ptr;
+
+void printf_b()
+{
+    printf("function start\n");
+    printf("bbbbbbb\n");
+
+    Switch(&obj,&src);
+    printf("function end\n");    
+}
+
+
+void printf_a()
+{
+    printf("function start\n");
+    printf("aaaaaaa\n");
+
+    //压栈是从高地址向低地址
+    obj.esp = ptr + 4096;
+    obj.ebp = obj.esp;
+    obj.eip = (unsigned long)printf_b;//设置切换地址
+
+    Switch(&src,&obj);    
+    
+    printf("function end\n");
+    //Switch(&obj,&src);
+}
+
+
+int main()
+{
+    //分配栈内存
+    ptr = (unsigned long)malloc(4096);
+    if(ptr == 0)
+    {
+        printf("malloc error\n");
+        return -1;
+    }
+    
+    //压栈是从高地址向低地址
+    obj.esp = ptr + 4096;
+    obj.ebp = obj.esp;
+    obj.eip = (unsigned long)printf_a;//设置切换地址
+
+    Switch(&src,&obj);
+
+    printf("------main end------\n");
+    return 0;
+}
